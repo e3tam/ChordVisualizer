@@ -1,0 +1,228 @@
+//
+//  Untitled.swift
+//  ChordVisualizer
+//
+//  Created by Ali Sami Gözükırmızı on 13.04.2025.
+//
+
+import Foundation // Good practice, though not strictly needed here
+
+// MARK: - Chord Shape Database
+
+// Using nested Dictionaries for simplicity, mirroring Python structure
+let chordDatabase: [String: [String: [String]]] = [
+    "A": [
+        "Augmented": ["x 0 3 2 2 1", "5 4 3 2 x x", "x x 7 6 6 5"],
+        "Diminished": ["x 0 1 2 1 x", "5 6 7 5 x x", "x x 7 8 7 8"],
+        "Diminished 7th": ["5 6 4 5 x x", "x 0 1 2 1 2", "x x 7 8 7 8"],
+        "Dominant 7th": ["x 0 2 0 2 0", "5 7 5 6 5 5", "x 0 2 2 2 3", "x x 7 6 8 5"],
+        "Half-Dim 7th": ["x 0 1 2 1 3", "5 6 5 5 x x", "x x 7 8 8 8"],
+        "Major": ["x 0 2 2 2 0", "5 7 7 6 5 5", "x 0 2 2 2 5", "x x 7 6 5 5"],
+        "Major 7th": ["x 0 2 1 2 0", "5 7 6 6 5 5", "x 0 2 2 2 4", "x x 7 6 5 4"],
+        "Minor": ["x 0 2 2 1 0", "5 7 7 5 5 5", "x x 7 5 5 5", "x 3 2 2 1 0"],
+        "Minor 7th": ["x 0 2 0 1 0", "5 7 5 5 5 5", "x 0 2 2 1 3", "x x 7 5 8 5"],
+        "Power Chord": ["x 0 2 2 x x", "5 7 7 x x x", "x 0 2 2 5 5"],
+        "Suspended 2nd": ["x 0 2 2 0 0", "5 7 7 4 5 5", "x 0 2 4 x 0"],
+        "Suspended 4th": ["x 0 2 2 3 0", "5 7 7 7 5 5", "x 0 0 2 3 0"],
+    ],
+    "A# / Bb": [
+        "Augmented": ["x 1 4 3 3 x", "6 5 4 3 x x", "x x 8 7 7 6"],
+        "Diminished": ["x 1 2 3 2 x", "6 7 8 6 x x", "x x 8 9 8 9"],
+        "Diminished 7th": ["x 1 2 0 2 x", "6 7 5 6 x x", "x x 8 9 8 9"],
+        "Dominant 7th": ["x 1 3 1 3 1", "6 8 6 7 6 6", "x x 8 7 9 6"],
+        "Half-Dim 7th": ["x 1 2 1 2 x", "6 7 6 6 x x", "x x 8 9 9 9"],
+        "Major": ["x 1 3 3 3 1", "6 8 8 7 6 6", "x x 8 7 6 6"],
+        "Major 7th": ["x 1 3 2 3 1", "6 8 7 7 6 6", "x x 8 7 6 5"],
+        "Minor": ["x 1 3 3 2 1", "6 8 8 6 6 6", "x x 8 6 6 6"],
+        "Minor 7th": ["x 1 3 1 2 1", "6 8 6 6 6 6", "x x 8 6 9 6"],
+        "Power Chord": ["x 1 3 3 x x", "6 8 8 x x x", "x x 8 10 11 x"],
+        "Suspended 2nd": ["x 1 3 3 1 1", "6 8 8 5 6 6", "x x 8 5 6 6"],
+        "Suspended 4th": ["x 1 3 3 4 1", "6 8 8 8 6 6", "x x 8 8 6 6"],
+    ],
+    "B": [
+        "Augmented": ["x 2 5 4 4 x", "7 6 5 4 x x", "x x 9 8 8 7"],
+        "Diminished": ["x 2 3 4 3 x", "7 8 9 7 x x", "x x 9 10 9 10"],
+        "Diminished 7th": ["x 2 3 1 3 x", "7 8 6 7 x x", "x x 9 10 9 10"],
+        "Dominant 7th": ["x 2 1 2 0 2", "7 9 7 8 7 7", "x 2 4 2 4 2", "x x 9 8 10 7"],
+        "Half-Dim 7th": ["x 2 3 2 3 x", "7 8 7 7 x x", "x x 9 10 10 10"],
+        "Major": ["x 2 4 4 4 2", "7 9 9 8 7 7", "x x 9 8 7 7"],
+        "Major 7th": ["x 2 4 3 4 2", "7 9 8 8 7 7", "x x 9 8 7 6"],
+        "Minor": ["x 2 4 4 3 2", "7 9 9 7 7 7", "x x 9 7 7 7"],
+        "Minor 7th": ["x 2 4 2 3 2", "7 9 7 7 7 7", "x x 9 7 10 7"],
+        "Power Chord": ["x 2 4 4 x x", "7 9 9 x x x", "x x 9 11 12 x"],
+        "Suspended 2nd": ["x 2 4 4 2 2", "7 9 9 6 7 7", "x x 9 6 7 7"],
+        "Suspended 4th": ["x 2 4 4 5 2", "7 9 9 9 7 7", "x x 9 9 7 7"],
+    ],
+    "C": [
+        "Augmented": ["x 3 2 1 1 x", "x x 6 5 5 4", "8 7 6 5 x x"],
+        "Diminished": ["x 3 4 5 4 x", "x x 1 2 1 2", "8 9 10 8 x x"],
+        "Diminished 7th": ["x 3 4 2 4 x", "8 9 7 8 x x", "x x 10 11 10 11"],
+        "Dominant 7th": ["x 3 2 3 1 0", "x 3 5 3 5 3", "8 10 8 9 8 8", "x x 10 9 11 8"],
+        "Half-Dim 7th": ["x 3 4 3 4 x", "8 9 8 8 x x", "x x 10 11 11 11"],
+        "Major": ["x 3 2 0 1 0", "x 3 5 5 5 3", "8 10 10 9 8 8", "x x 10 9 8 8"],
+        "Major 7th": ["x 3 2 0 0 0", "x 3 5 4 5 3", "8 10 9 9 8 8", "x x 10 9 8 7"],
+        "Minor": ["x 3 5 5 4 3", "8 10 10 8 8 8", "x x 10 8 8 8", "x 3 1 0 1 x"],
+        "Minor 7th": ["x 3 5 3 4 3", "8 10 8 8 8 8", "x x 10 8 11 8", "x 3 1 3 1 x"],
+        "Power Chord": ["x 3 5 5 x x", "8 10 10 x x x", "x x 10 12 13 x"],
+        "Suspended 2nd": ["x 3 0 0 1 0", "x 3 5 5 3 3", "8 10 10 7 8 8", "x x 10 7 8 8"],
+        "Suspended 4th": ["x 3 3 0 1 0", "x 3 5 5 6 3", "8 10 10 10 8 8", "x x 10 10 8 8"],
+    ],
+    "C# / Db": [
+        "Augmented": ["x 4 3 2 2 x", "9 8 7 6 x x", "x x 7 6 6 5"],
+        "Diminished": ["x 4 5 6 5 x", "9 10 11 9 x x", "x x 11 12 11 12"],
+        "Diminished 7th": ["x 4 5 3 5 x", "9 10 8 9 x x", "x x 11 12 11 12"],
+        "Dominant 7th": ["x 4 6 4 6 4", "9 11 9 10 9 9", "x x 11 10 12 9"],
+        "Half-Dim 7th": ["x 4 5 4 5 x", "9 10 9 9 x x", "x x 11 12 12 12"],
+        "Major": ["x 4 6 6 6 4", "9 11 11 10 9 9", "x x 11 10 9 9"],
+        "Major 7th": ["x 4 6 5 6 4", "9 11 10 10 9 9", "x x 11 10 9 8"],
+        "Minor": ["x 4 6 6 5 4", "9 11 11 9 9 9", "x x 11 9 9 9"],
+        "Minor 7th": ["x 4 6 4 5 4", "9 11 9 9 9 9", "x x 11 9 12 9"],
+        "Power Chord": ["x 4 6 6 x x", "9 11 11 x x x", "x x 11 13 14 x"],
+        "Suspended 2nd": ["x 4 6 6 4 4", "9 11 11 8 9 9", "x x 11 8 9 9"],
+        "Suspended 4th": ["x 4 6 6 7 4", "9 11 11 11 9 9", "x x 11 11 9 9"],
+    ],
+    "D": [
+        "Augmented": ["x x 0 3 3 2", "x 5 4 3 3 x", "10 9 8 7 x x"],
+        "Diminished": ["x x 0 1 3 1", "x 5 6 7 6 x", "10 11 12 10 x x"],
+        "Diminished 7th": ["x x 0 1 0 1", "x 5 6 4 6 x", "10 11 9 10 x x"],
+        "Dominant 7th": ["x x 0 2 1 2", "x 5 7 5 7 5", "10 12 10 11 10 10", "x x 12 11 13 10"],
+        "Half-Dim 7th": ["x x 0 1 1 1", "x 5 6 5 6 x", "10 11 10 10 x x"],
+        "Major": ["x x 0 2 3 2", "x 5 7 7 7 5", "10 12 12 11 10 10", "x x 12 11 10 10"],
+        "Major 7th": ["x x 0 2 2 2", "x 5 7 6 7 5", "10 12 11 11 10 10", "x x 12 11 10 9"],
+        "Minor": ["x x 0 2 3 1", "x 5 7 7 6 5", "10 12 12 10 10 10", "x x 12 10 10 10"],
+        "Minor 7th": ["x x 0 2 1 1", "x 5 7 5 6 5", "10 12 10 10 10 10", "x x 12 10 13 10"],
+        "Power Chord": ["x x 0 2 3 x", "x 5 7 7 x x", "10 12 12 x x x"],
+        "Suspended 2nd": ["x x 0 2 3 0", "x 5 7 7 5 5", "10 12 12 9 10 10", "x x 12 9 10 10"],
+        "Suspended 4th": ["x x 0 2 3 3", "x 5 7 7 8 5", "10 12 12 12 10 10", "x x 12 12 10 10"],
+    ],
+    "D# / Eb": [
+        "Augmented": ["x x 1 4 4 3", "x 6 5 4 4 x", "11 10 9 8 x x"],
+        "Diminished": ["x x 1 2 4 2", "x 6 7 8 7 x", "11 12 13 11 x x"],
+        "Diminished 7th": ["x x 1 2 1 2", "x 6 7 5 7 x", "11 12 10 11 x x"],
+        "Dominant 7th": ["x x 1 3 2 3", "x 6 8 6 8 6", "11 13 11 12 11 11"],
+        "Half-Dim 7th": ["x x 1 2 2 2", "x 6 7 6 7 x", "11 12 11 11 x x"],
+        "Major": ["x x 1 3 4 3", "x 6 8 8 8 6", "11 13 13 12 11 11"],
+        "Major 7th": ["x x 1 3 3 3", "x 6 8 7 8 6", "11 13 12 12 11 11"],
+        "Minor": ["x x 1 3 4 2", "x 6 8 8 7 6", "11 13 13 11 11 11"],
+        "Minor 7th": ["x x 1 3 2 2", "x 6 8 6 7 6", "11 13 11 11 11 11"],
+        "Power Chord": ["x x 1 3 4 x", "x 6 8 8 x x", "11 13 13 x x x"],
+        "Suspended 2nd": ["x x 1 3 4 1", "x 6 8 8 6 6", "11 13 13 10 11 11"],
+        "Suspended 4th": ["x x 1 3 4 4", "x 6 8 8 9 6", "11 13 13 13 11 11"],
+    ],
+    "E": [
+        "Augmented": ["0 3 2 1 1 0", "x 7 6 5 5 x", "x x 2 1 1 0"],
+        "Diminished": ["0 1 2 0 2 0", "x 7 8 9 8 x", "x x 2 3 2 3"],
+        "Diminished 7th": ["0 1 2 0 2 0", "x 7 8 6 8 x", "x x 2 3 2 3"],
+        "Dominant 7th": ["0 2 0 1 0 0", "x 7 9 7 9 7", "0 2 2 1 3 0", "x x 2 1 3 0"],
+        "Half-Dim 7th": ["0 1 0 0 3 0", "x 7 8 7 8 x", "x x 2 3 3 3"],
+        "Major": ["0 2 2 1 0 0", "x 7 9 9 9 7", "x x 2 1 0 0"],
+        "Major 7th": ["0 2 1 1 0 0", "x 7 9 8 9 7", "0 x 6 4 4 4", "x x 2 4 4 4"],
+        "Minor": ["0 2 2 0 0 0", "x 7 9 9 8 7", "x x 2 0 0 0"],
+        "Minor 7th": ["0 2 0 0 0 0", "x 7 9 7 8 7", "0 2 2 0 3 0", "x x 2 0 3 0"],
+        "Power Chord": ["0 2 2 x x x", "x 7 9 9 x x", "x x 2 4 5 x"],
+        "Suspended 2nd": ["0 2 4 x 0 0", "x 7 9 9 7 7", "0 2 2 4 0 0", "x x 2 4 5 2"],
+        "Suspended 4th": ["0 2 2 2 0 0", "x 7 9 9 10 7", "0 0 2 2 0 0", "x x 2 2 0 0"],
+    ],
+    "F": [
+        "Augmented": ["1 0 3 2 2 1", "x 8 7 6 6 x", "x x 3 2 2 1"],
+        "Diminished": ["1 2 3 1 3 1", "x 8 9 10 9 x", "x x 3 4 3 4"],
+        "Diminished 7th": ["1 2 0 1 0 1", "x 8 9 7 9 x", "x x 3 4 3 4"],
+        "Dominant 7th": ["1 3 1 2 1 1", "x 8 10 8 10 8", "x x 3 2 4 1"],
+        "Half-Dim 7th": ["1 2 1 1 x x", "x 8 9 8 9 x", "x x 3 4 4 4"],
+        "Major": ["1 3 3 2 1 1", "x 8 10 10 10 8", "x x 3 2 1 1"],
+        "Major 7th": ["1 3 2 2 1 1", "x 8 10 9 10 8", "x x 3 2 1 0"],
+        "Minor": ["1 3 3 1 1 1", "x 8 10 10 9 8", "x x 3 1 1 1"],
+        "Minor 7th": ["1 3 1 1 1 1", "x 8 10 8 9 8", "x x 3 1 4 1"],
+        "Power Chord": ["1 3 3 x x x", "x 8 10 10 x x", "x x 3 5 6 x"],
+        "Suspended 2nd": ["1 3 3 0 1 1", "x 8 10 10 8 8", "x x 3 0 1 1"],
+        "Suspended 4th": ["1 3 3 3 1 1", "x 8 10 10 11 8", "x x 3 3 1 1"],
+    ],
+    "F# / Gb": [
+        "Augmented": ["2 1 4 3 3 2", "x 9 8 7 7 x", "x x 4 3 3 2"],
+        "Diminished": ["2 3 4 2 4 2", "x 9 10 11 10 x", "x x 4 5 4 5"],
+        "Diminished 7th": ["2 3 1 2 1 2", "x 9 10 8 10 x", "x x 4 5 4 5"],
+        "Dominant 7th": ["2 4 2 3 2 2", "x 9 11 9 11 9", "x x 4 3 5 2"],
+        "Half-Dim 7th": ["2 3 2 2 x x", "x 9 10 9 10 x", "x x 4 5 5 5"],
+        "Major": ["2 4 4 3 2 2", "x 9 11 11 11 9", "x x 4 3 2 2"],
+        "Major 7th": ["2 4 3 3 2 2", "x 9 11 10 11 9", "x x 4 3 2 1"],
+        "Minor": ["2 4 4 2 2 2", "x 9 11 11 10 9", "x x 4 2 2 2"],
+        "Minor 7th": ["2 4 2 2 2 2", "x 9 11 9 10 9", "x x 4 2 5 2"],
+        "Power Chord": ["2 4 4 x x x", "x 9 11 11 x x", "x x 4 6 7 x"],
+        "Suspended 2nd": ["2 4 4 1 2 2", "x 9 11 11 9 9", "x x 4 1 2 2"],
+        "Suspended 4th": ["2 4 4 4 2 2", "x 9 11 11 12 9", "x x 4 4 2 2"],
+    ],
+    "G": [
+        "Augmented": ["3 2 1 0 0 3", "x 10 9 8 8 x", "x x 5 4 4 3"],
+        "Diminished": ["3 4 5 3 5 3", "x 10 11 12 11 x", "x x 5 6 5 6"],
+        "Diminished 7th": ["3 4 2 3 2 3", "x 10 11 9 11 x", "x x 5 6 5 6"],
+        "Dominant 7th": ["3 2 0 0 0 1", "3 5 3 4 3 3", "x 10 12 10 12 10", "x x 5 4 6 3"],
+        "Half-Dim 7th": ["3 4 3 3 x x", "x 10 11 10 11 x", "x x 5 6 6 6"],
+        "Major": ["3 2 0 0 0 3", "3 5 5 4 3 3", "x 10 12 12 12 10", "x x 5 4 3 3"],
+        "Major 7th": ["3 2 0 0 0 2", "3 5 4 4 3 3", "x 10 12 11 12 10", "x x 5 4 3 2"],
+        "Minor": ["3 5 5 3 3 3", "x 10 12 12 11 10", "x x 5 3 3 3"],
+        "Minor 7th": ["3 5 3 3 3 3", "x 10 12 10 11 10", "x x 3 3 3 3", "x x 5 3 6 3"],
+        "Power Chord": ["3 5 5 x x x", "x 10 12 12 x x", "x x 5 7 8 x"],
+        "Suspended 2nd": ["3 0 0 0 3 3", "3 5 5 2 3 3", "x 10 12 12 10 10", "x x 5 2 3 3"],
+        "Suspended 4th": ["3 3 0 0 1 3", "3 5 5 5 3 3", "x 10 12 12 13 10", "x x 5 5 3 3"],
+    ],
+    "G# / Ab": [
+        "Augmented": ["4 3 2 1 1 4", "x 11 10 9 9 x", "x x 6 5 5 4"],
+        "Diminished": ["4 5 6 4 6 4", "x 11 12 13 12 x", "x x 6 7 6 7"],
+        "Diminished 7th": ["4 5 3 4 3 4", "x 11 12 10 12 x", "x x 6 7 6 7"],
+        "Dominant 7th": ["4 6 4 5 4 4", "x 11 13 11 13 11", "x x 6 5 7 4"],
+        "Half-Dim 7th": ["4 5 4 4 x x", "x 11 12 11 12 x", "x x 6 7 7 7"],
+        "Major": ["4 6 6 5 4 4", "x 11 13 13 13 11", "x x 6 5 4 4"],
+        "Major 7th": ["4 6 5 5 4 4", "x 11 13 12 13 11", "x x 6 5 4 3"],
+        "Minor": ["4 6 6 4 4 4", "x 11 13 13 12 11", "x x 6 4 4 4"],
+        "Minor 7th": ["4 6 4 4 4 4", "x 11 13 11 12 11", "x x 4 4 4 4", "x x 6 4 7 4"],
+        "Power Chord": ["4 6 6 x x x", "x 11 13 13 x x", "x x 6 8 9 x"],
+        "Suspended 2nd": ["4 6 6 3 4 4", "x 11 13 13 11 11", "x x 6 3 4 4"],
+        "Suspended 4th": ["4 6 6 6 4 4", "x 11 13 13 14 11", "x x 6 6 4 4"],
+    ],
+]
+
+// MARK: - Chord Formulas
+let chordFormulas: [String: String] = [
+    "Major": "1-3-5", "Minor": "1-b3-5", "Dominant 7th": "1-3-5-b7",
+    "Major 7th": "1-3-5-7", "Minor 7th": "1-b3-5-b7", "Diminished": "1-b3-b5",
+    "Augmented": "1-3-#5", "Suspended 2nd": "1-2-5", "Suspended 4th": "1-4-5",
+    "Diminished 7th": "1-b3-b5-bb7", "Half-Dim 7th": "1-b3-b5-b7",
+    "Power Chord": "1-5"
+]
+
+// MARK: - Suggestion Rules
+typealias SuggestionRule = (intervalRoman: String, qualityRule: String)
+let suggestionRulesDatabase: [String: [String: [SuggestionRule]]] = [
+    "Pop - Happy": [
+        "Major": [("V", "Major"), ("IV", "Major"), ("vi", "Minor"), ("ii", "Minor")],
+        "Minor": [("bVII", "Major"), ("bVI", "Major"), ("V", "Major"), ("iv", "Minor")],
+        "Dominant 7th": [("I", "Major")],
+    ],
+    "Rock - Standard": [
+        "Major": [("V", "Major"), ("IV", "Major"), ("vi", "Minor"), ("bVII", "Major")],
+        "Minor": [("bVI", "Major"), ("bVII", "Major"), ("iv", "Minor"), ("V", "Major")],
+        "Dominant 7th": [("I", "Major"), ("i", "Minor")],
+    ],
+    "Blues - Standard": [
+        "Major": [("IV", "Major"), ("V", "Major"), ("I", "Dominant 7th")],
+        "Minor": [("iv", "Minor 7th"), ("V", "Dominant 7th"), ("i", "Minor 7th")],
+        "Dominant 7th": [("I", "Major"), ("IV", "Dominant 7th"), ("i", "Minor")],
+    ],
+    "Folk - Relaxed": [
+        "Major": [("V", "Major"), ("IV", "Major"), ("vi", "Minor"), ("ii", "Minor")],
+        "Minor": [("bVII", "Major"), ("iv", "Minor"), ("bIII", "Major"), ("V", "Major")],
+        "Dominant 7th": [("I", "Major")],
+    ],
+    "Jazz - Simple": [
+        "Major": [("ii", "Minor 7th"), ("V", "Dominant 7th"), ("IV", "Major 7th")],
+        "Minor": [("ii", "Half-Dim 7th"), ("V", "Dominant 7th"), ("i", "Minor 7th")],
+        "Dominant 7th": [("I", "Major 7th"), ("i", "Minor 7th")],
+    ],
+     "Minor - Sad": [
+        "Major": [("vi", "Minor"), ("IV", "Major"), ("iii", "Minor")],
+        "Minor": [("iv", "Minor"), ("bVI", "Major"), ("V", "Minor"), ("V", "Major")],
+        "Dominant 7th": [("i", "Minor")],
+    ],
+]
+let suggestionStyles = suggestionRulesDatabase.keys.sorted()
+
